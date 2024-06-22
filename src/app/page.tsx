@@ -1,12 +1,28 @@
 import Image from "next/image";
+import Navbar from "./_components/navbar";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <h1 className="text-6xl font-normal leading-normal mt-0 mb-2 text-pink-800">
-        melabaaa
-      </h1>
-      <p>burada bazı seyler olacaaagk</p>
-    </main>
+    <div className="px-80 max-w-screen-xl mx-auto">
+      <Navbar />
+      <div>
+        <pre>
+          {`
+           __    melabaa!
+          /  \\   ~~|~~
+         (|00|)    |
+          (==)  --/
+        ___||___
+       / _ .. _ \\
+      //  |  |  \\\\
+     //   |  |   \\\\
+     ||  / /\\ \\  ||
+    _|| _| || |_ ||_
+   \\|||___||___|||/
+          `}
+        </pre>
+        <p>Herkese merebe, ben Kayra. Kod yazarım, geri kalan zamanlarımda yatarım.</p>
+      </div>
+    </div>
   );
 }
