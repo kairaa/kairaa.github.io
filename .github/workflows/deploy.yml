@@ -31,6 +31,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Debug - List directory contents
+        run: |
+          pwd
+          ls -la
       - name: Detect package manager
         id: detect-package-manager
         run: |
@@ -68,7 +72,10 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+        run: |
+          ${{ steps.detect-package-manager.outputs.runner }} next build
+          ls -la
+          ls -la out || echo "out directory not found"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
