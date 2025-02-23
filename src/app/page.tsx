@@ -68,7 +68,7 @@ export default function Home() {
     if (inputValue !== tempInput) {
       setHistoryIndex(-1);
     }
-  }, [inputValue]);
+  }, [inputValue, tempInput]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -104,8 +104,8 @@ export default function Home() {
   const outputs = {
     about: (
       <div>
-        <p>Hey! I'm Kayra. I write code and sleep in my remaining time.</p>
-        <p>I'm a software developer focused on building web applications.</p>
+        <p>Hey! I&apos;m Kayra. I write code and sleep in my remaining time.</p>
+        <p>I&apos;m a software developer focused on building web applications.</p>
       </div>
     ),
     contact: (
@@ -163,7 +163,7 @@ export default function Home() {
       } else {
         setCommandHistory(prev => [...prev, {
           command,
-          output: <div>Theme not found. Type 'theme' to see available themes.</div>,
+          output: <div>Theme not found. Type theme to see available themes.</div>,
           timestamp: Date.now()
         }]);
       }
@@ -172,7 +172,7 @@ export default function Home() {
     }
 
     const output = outputs[command as keyof typeof outputs] || (
-      <div>Command not found. Type 'help' to see available commands.</div>
+      <div>Command not found. Type help to see available commands.</div>
     );
 
     setCommandHistory(prev => [...prev, {
