@@ -115,12 +115,6 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p>Demo credentials for testing:</p>
-            <p>Email: <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">admin@example.com</code></p>
-            <p>Password: <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">admin123</code></p>
-          </div>
         </div>
       </div>
     </div>
