@@ -63,7 +63,7 @@ export default function EditPostPage() {
             summary: blogPost.summary,
             content: blogPost.content,
             imageUrl: blogPost.image || '',
-            tags: blogPost.tags.join(', '),
+            tags: blogPost.tags?.join(', ') || '',
             isPublished: blogPost.isPublished,
           });
         } else {
