@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Command } from 'cmdk';
 import { Terminal } from 'lucide-react';
+import ThemeToggle from './_components/ThemeToggle';
 
 interface CommandOutput {
   command: string;
@@ -57,6 +58,20 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [tempInput, setTempInput] = useState('');
+
+  // Show welcome message on first load
+  useEffect(() => {
+    setCommandHistory([{
+      command: 'welcome',
+      output: (
+        <div>
+          <p>Welcome to kairaa.dev terminal!</p>
+          <p>Type <span className="font-bold">help</span> to see available commands.</p>
+        </div>
+      ),
+      timestamp: Date.now()
+    }]);
+  }, []);
 
   // Auto scroll to bottom when command history changes
   useEffect(() => {
@@ -119,12 +134,19 @@ export default function Home() {
         <p>GitHub: <a href="https://github.com/kairaa" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-400">https://github.com/kairaa</a></p>
       </div>
     ),
+    blog: (
+      <div>
+        <p>Redirecting to blog...</p>
+        <p>Visit: <a href="/blog" className="underline hover:text-blue-400">/blog</a></p>
+      </div>
+    ),
     help: (
       <div>
         <p>Available commands:</p>
         <p>about    - Learn more about me</p>
         <p>contact  - Get my contact information</p>
         <p>links    - View my social links</p>
+        <p>blog     - Navigate to blog page</p>
         <p>clear    - Clear the terminal</p>
         <p>theme    - Change terminal theme (dark/light/matrix/retro/blue)</p>
         <p>help     - Show this help message</p>
@@ -147,6 +169,23 @@ export default function Home() {
     if (command === 'clear') {
       setCommandHistory([]);
       setInputValue('');
+      return;
+    }
+
+    // Handle blog command
+    if (command === 'blog') {
+      // Show the output first
+      setCommandHistory(prev => [...prev, {
+        command,
+        output: outputs.blog,
+        timestamp: Date.now()
+      }]);
+      setInputValue('');
+      
+      // Navigate to blog after a short delay
+      setTimeout(() => {
+        window.location.href = '/blog';
+      }, 1000);
       return;
     }
 
@@ -188,6 +227,7 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen font-mono ${theme.bg} ${theme.text} fixed inset-0 flex flex-col`}>
+      <ThemeToggle />
       {/* Command History */}
       <div className="flex-1 overflow-auto">
         <div className="p-4 pb-32 space-y-4">
