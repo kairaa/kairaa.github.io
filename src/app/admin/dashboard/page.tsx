@@ -11,6 +11,11 @@ export default function AdminDashboard() {
   const { isAuthenticated, logout, loading } = useAuth();
   const router = useRouter();
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Admin Dashboard | Kaira";
+  }, []);
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/admin/login');

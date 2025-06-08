@@ -80,6 +80,17 @@ export default function EditPostPage() {
     fetchPost();
   }, [postId, isAuthenticated, router]);
 
+  // Set dynamic page title based on post
+  useEffect(() => {
+    if (post) {
+      document.title = `Edit: ${post.title} | Kaira Admin`;
+    } else if (loadingPost) {
+      document.title = "Loading Post... | Kaira Admin";
+    } else {
+      document.title = "Edit Post | Kaira Admin";
+    }
+  }, [post, loadingPost]);
+
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()

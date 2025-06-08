@@ -32,6 +32,17 @@ export default function BlogPostPage() {
     fetchPost();
   }, [slug]);
 
+  // Set dynamic page title based on post
+  useEffect(() => {
+    if (post) {
+      document.title = `${post.title} | Kaira Blog`;
+    } else if (error) {
+      document.title = "Post Not Found | Kaira Blog";
+    } else {
+      document.title = "Loading... | Kaira Blog";
+    }
+  }, [post, error]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">

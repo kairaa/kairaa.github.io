@@ -6,8 +6,28 @@ import { ThemeProvider } from "./_contexts/ThemeContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Might be a portfolio",
-  description: "Temp",
+  metadataBase: new URL('https://kaira.me'),
+  title: {
+    template: "%s | Kaira",
+    default: "Kaira - Developer & Tech Enthusiast"
+  },
+  description: "Personal blog and portfolio of Kaira - sharing insights on technology, programming, and software development.",
+  keywords: ["kaira", "blog", "programming", "technology", "software development", "web development"],
+  authors: [{ name: "Kaira" }],
+  creator: "Kaira",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://kaira.me",
+    siteName: "Kaira",
+    title: "Kaira - Developer & Tech Enthusiast",
+    description: "Personal blog and portfolio of Kaira - sharing insights on technology, programming, and software development.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kaira - Developer & Tech Enthusiast",
+    description: "Personal blog and portfolio of Kaira - sharing insights on technology, programming, and software development.",
+  },
 };
 
 export default function RootLayout({

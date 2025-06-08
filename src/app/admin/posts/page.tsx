@@ -15,6 +15,11 @@ export default function ManagePostsPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Manage Posts | Kaira Admin";
+  }, []);
+
   const handleDeletePost = async (post: BlogPost) => {
     if (!confirm(`Are you sure you want to delete "${post.title}"?`)) {
       return;

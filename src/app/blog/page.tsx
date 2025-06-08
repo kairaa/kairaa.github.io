@@ -10,6 +10,11 @@ export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Blog | Kaira";
+  }, []);
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {

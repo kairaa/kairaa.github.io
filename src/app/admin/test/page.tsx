@@ -9,6 +9,11 @@ export default function ApiTestPage() {
   const [customEmail, setCustomEmail] = useState('');
   const [customPassword, setCustomPassword] = useState('');
 
+  // Set page title
+  React.useEffect(() => {
+    document.title = "API Test | Kaira Admin";
+  }, []);
+
   const testLogin = async () => {
     setLoading(true);
     setResult('Testing login with ApiClient...');

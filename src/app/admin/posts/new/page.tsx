@@ -45,6 +45,11 @@ export default function NewPostPage() {
     }
   }, [isAuthenticated, loading, router]);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Create New Post | Kaira Admin";
+  }, []);
+
   // Auto-generate slug from title
   useEffect(() => {
     if (formData.title) {

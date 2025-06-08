@@ -4,6 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { Command } from 'cmdk';
 import { Terminal } from 'lucide-react';
 import ThemeToggle from './_components/ThemeToggle';
+import type { Metadata } from 'next';
+
+// Since this is a client component, we'll set the title using useEffect
+// For proper SEO, consider making this a server component or using dynamic metadata
 
 interface CommandOutput {
   command: string;
@@ -71,6 +75,11 @@ export default function Home() {
       ),
       timestamp: Date.now()
     }]);
+  }, []);
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Terminal | Kaira";
   }, []);
 
   // Auto scroll to bottom when command history changes

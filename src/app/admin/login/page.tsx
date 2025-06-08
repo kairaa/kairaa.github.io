@@ -14,6 +14,11 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
+  // Set page title
+  React.useEffect(() => {
+    document.title = "Admin Login | Kaira";
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
