@@ -1,11 +1,6 @@
 services:
   blog:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://gw.kaira.me/api}
-        NEXT_PUBLIC_USE_MOCK_DATA: ${NEXT_PUBLIC_USE_MOCK_DATA:-false}
+    image: kaira-blog:latest
     ports:
       - "3000:3000"
     environment:
@@ -20,8 +15,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.blog.rule=Host(`kaira.me`)"
-      - "traefik.http.routers.blog.tls=true"
-      - "traefik.http.routers.blog.tls.certresolver=letsencrypt"
