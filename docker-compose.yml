@@ -2,7 +2,7 @@ services:
   blog:
     image: kaira-blog:latest
     ports:
-      - "80:3000"  # External port 80, internal port 3000
+      - "8080:3000"  # Port 8080'e geçelim
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://gw.kaira.me/api}
