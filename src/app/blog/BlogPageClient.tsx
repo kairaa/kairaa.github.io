@@ -7,14 +7,14 @@ import { getBlogPosts } from '../_lib/blogApi';
 import type { BlogPost } from '../_types/blog';
 
 interface BlogPageClientProps {
-  initialPosts: BlogPost[];
+  initialPosts?: BlogPost[];
 }
 
-export default function BlogPageClient({ initialPosts }: BlogPageClientProps) {
-  const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
-  const [loading, setLoading] = useState(false);
+export default function BlogPageClient({ initialPosts = [] }: BlogPageClientProps) {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(initialPosts.length === 10);
+  const [hasMore, setHasMore] = useState(true);
   const pageSize = 10;
 
   // Set page title
@@ -22,24 +22,23 @@ export default function BlogPageClient({ initialPosts }: BlogPageClientProps) {
     document.title = "Blog | Kaira";
   }, []);
 
-  // Only fetch more posts if we don't have initial data
+  // Always fetch posts on component mount - ignore initialPosts for fresh data
   useEffect(() => {
-    if (initialPosts.length === 0) {
-      const fetchPosts = async () => {
-        setLoading(true);
-        try {
-          const blogPosts = await getBlogPosts(1, pageSize);
-          setPosts(blogPosts);
-          setHasMore(blogPosts.length === pageSize);
-        } catch (error) {
-          console.error('Error fetching blog posts:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchPosts();
-    }
-  }, [initialPosts.length, pageSize]);
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        const blogPosts = await getBlogPosts(1, pageSize);
+        setPosts(blogPosts);
+        setHasMore(blogPosts.length === pageSize);
+      } catch (error) {
+        console.error('Error fetching blog posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []); // Remove initialPosts dependency to always fetch fresh data
 
   const loadMore = async () => {
     try {
