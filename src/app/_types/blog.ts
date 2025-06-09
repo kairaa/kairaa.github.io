@@ -4,19 +4,31 @@ export interface BlogPost {
   slug: string;
   summary: string;
   content: string;
+  cleanContent?: string;
   image: string;
-  author?: string;
-  publishedAt: string;
-  updatedAt?: string;
-  tags?: string[];
+  authorId: number;
+  createdAt: string;
+  tags: string[];
+  isPublished?: boolean;
+}
+
+export interface BlogPostDetail extends BlogPost {
+  cleanContent: string;
   isPublished: boolean;
 }
 
 export interface BlogPostsResponse {
-  posts: BlogPost[];
-  total: number;
-  page: number;
-  limit: number;
+  isSuccess: boolean;
+  errors: any;
+  data: BlogPost[];
+  statusCode: number;
+}
+
+export interface BlogPostDetailResponse {
+  isSuccess: boolean;
+  errors: any;
+  data: BlogPostDetail;
+  statusCode: number;
 }
 
 export interface ApiResponse<T> {

@@ -7,7 +7,7 @@ import ThemeToggle from '../../../_components/ThemeToggle';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
-import { createBlogPost } from '../../../_lib/blogApi';
+import { createBlogPost, uploadImageToImgur } from '../../../_lib/blogApi';
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -38,6 +38,8 @@ export default function NewPostPage() {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -67,10 +69,66 @@ export default function NewPostPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image file size must be less than 5MB');
+      return;
+    }
+
+    setImageFile(file);
+    setImageUploading(true);
+    setError('');
+
+    try {
+      const imageUrl = await uploadImageToImgur(file);
+      setFormData(prev => ({ ...prev, image: imageUrl }));
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setError('Failed to upload image. Please try again.');
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError('');
+
+    // Validate required fields
+    if (!formData.title.trim()) {
+      setError('Title is required');
+      setSaving(false);
+      return;
+    }
+
+    if (!formData.summary.trim()) {
+      setError('Summary is required');
+      setSaving(false);
+      return;
+    }
+
+    if (!formData.content.trim()) {
+      setError('Content is required');
+      setSaving(false);
+      return;
+    }
+
+    if (!formData.image.trim()) {
+      setError('Featured image is required');
+      setSaving(false);
+      return;
+    }
 
     try {
       const postData = {
@@ -78,7 +136,7 @@ export default function NewPostPage() {
         slug: formData.slug,
         summary: formData.summary,
         content: formData.content,
-        image: formData.image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop',
+        image: formData.image,
         author: formData.author,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         isPublished: formData.isPublished,
@@ -88,7 +146,7 @@ export default function NewPostPage() {
       router.push('/admin/posts');
     } catch (err) {
       console.error('Error creating post:', err);
-      setError('Failed to save post. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to save post. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -208,16 +266,55 @@ export default function NewPostPage() {
               {/* Featured Image */}
               <div>
                 <label className="block text-sm font-medium text-[rgb(var(--foreground-rgb))] mb-2">
-                  Featured Image URL *
+                  Featured Image *
                 </label>
-                <input
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => handleInputChange('image', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-[rgb(var(--foreground-rgb))]"
-                  placeholder="https://example.com/image.jpg"
-                  required
-                />
+                
+                {/* Image Upload */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300"
+                      disabled={imageUploading || saving}
+                    />
+                    {imageUploading && (
+                      <div className="text-blue-600 text-sm">
+                        Uploading...
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Image URL Input (for manual entry or editing) */}
+                  <input
+                    type="url"
+                    value={formData.image}
+                    onChange={(e) => handleInputChange('image', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-[rgb(var(--foreground-rgb))]"
+                    placeholder="https://example.com/image.jpg"
+                    required
+                  />
+
+                  {/* Image Preview */}
+                  {formData.image && (
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Preview:</p>
+                      <div className="relative w-full h-48 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                        <img
+                          src={formData.image}
+                          alt="Featured image preview"
+                          className="w-full h-full object-cover"
+                          onError={() => setError('Invalid image URL')}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-500">
+                    Upload an image file (max 5MB) or enter an image URL manually
+                  </p>
+                </div>
               </div>
 
               {/* Author */}
@@ -294,10 +391,10 @@ export default function NewPostPage() {
                 </Link>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || imageUploading}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {saving ? 'Saving...' : 'Save Post'}
+                  {saving ? 'Saving...' : imageUploading ? 'Uploading Image...' : 'Save Post'}
                 </button>
               </div>
             </form>

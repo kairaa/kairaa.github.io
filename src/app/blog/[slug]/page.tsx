@@ -2,28 +2,36 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getBlogPost } from '../../_lib/blogApi';
-import type { BlogPost } from '../../_types/blog';
+import type { BlogPostDetail } from '../../_types/blog';
 
 export default function BlogPostPage() {
   const params = useParams();
   const slug = params?.slug as string;
-  const [post, setPost] = useState<BlogPost | null>(null);
+  const [post, setPost] = useState<BlogPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
       if (!slug) return;
-      
+
       try {
         const blogPost = await getBlogPost(slug);
-        setPost(blogPost);
+        if (blogPost) {
+          setPost(blogPost);
+          // Set dynamic page title
+          document.title = `${blogPost.title} | Kaira`;
+        } else {
+          setError('Post not found');
+          document.title = 'Post Not Found | Kaira';
+        }
       } catch (error) {
         console.error('Error fetching blog post:', error);
         setError('Post not found');
+        document.title = 'Post Not Found | Kaira';
       } finally {
         setLoading(false);
       }
@@ -31,17 +39,6 @@ export default function BlogPostPage() {
 
     fetchPost();
   }, [slug]);
-
-  // Set dynamic page title based on post
-  useEffect(() => {
-    if (post) {
-      document.title = `${post.title} | Kaira Blog`;
-    } else if (error) {
-      document.title = "Post Not Found | Kaira Blog";
-    } else {
-      document.title = "Loading... | Kaira Blog";
-    }
-  }, [post, error]);
 
   if (loading) {
     return (
@@ -60,15 +57,15 @@ export default function BlogPostPage() {
       <div className="min-h-screen bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Post Not Found
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-8">
-              The blog post you're looking for doesn't exist.
+              The blog post you're looking for doesn't exist or has been removed.
             </p>
             <Link 
-              href="/blog" 
-              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors"
+              href="/blog"
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               ← Back to Blog
             </Link>
@@ -82,40 +79,18 @@ export default function BlogPostPage() {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Back Navigation */}
-          <div className="mb-8">
-            <Link 
-              href="/blog" 
-              className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-            >
-              ← Back to Blog
-            </Link>
-          </div>
+          {/* Back to Blog */}
+          <Link 
+            href="/blog"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-8 transition-colors"
+          >
+            ← Back to Blog
+          </Link>
 
           {/* Article Header */}
-          <header className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {post.title}
-            </h1>
-            
-            <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 text-sm mb-6">
-              <time dateTime={post.publishedAt}>
-                {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </time>
-              {post.author && (
-                <>
-                  <span>•</span>
-                  <span>By {post.author}</span>
-                </>
-              )}
-            </div>
-
+          <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
             {/* Featured Image */}
-            <div className="relative h-64 md:h-96 w-full overflow-hidden rounded-lg mb-8">
+            <div className="relative h-64 md:h-96 w-full">
               <Image
                 src={post.image}
                 alt={post.title}
@@ -124,37 +99,66 @@ export default function BlogPostPage() {
                 priority
               />
             </div>
-          </header>
 
-          {/* Article Content */}
-          <article className="prose prose-lg dark:prose-invert max-w-none">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+            {/* Article Content */}
+            <div className="p-8">
+              {/* Title */}
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                {post.title}
+              </h1>
+
+              {/* Meta Information */}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <div className="flex items-center gap-2">
+                  <span>By Author #{post.authorId}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <time dateTime={post.createdAt}>
+                    {new Date(post.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </time>
+                </div>
+              </div>
+
+              {/* Tags */}
+              {post.tags && post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {post.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Summary */}
+              <div className="text-lg text-gray-700 dark:text-gray-300 mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-blue-500">
+                {post.summary}
+              </div>
+
+              {/* Content */}
               <div 
-                className="text-[rgb(var(--foreground-rgb))] leading-relaxed prose-content"
+                className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </div>
           </article>
 
-          {/* Article Footer */}
-          <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Published on {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </div>
-              
-              <Link 
-                href="/blog" 
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-              >
-                ← Back to Blog
-              </Link>
-            </div>
-          </footer>
+          {/* Navigation */}
+          <div className="mt-8 text-center">
+            <Link 
+              href="/blog"
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              ← Back to All Posts
+            </Link>
+          </div>
         </div>
       </div>
     </div>

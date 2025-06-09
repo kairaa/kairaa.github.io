@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { getBlogPosts } from '../_lib/blogApi';
 import type { BlogPost } from '../_types/blog';
 
-export default function BlogPage() {
+export default function BlogPageClient() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -23,7 +23,6 @@ export default function BlogPage() {
       try {
         const blogPosts = await getBlogPosts(page, pageSize);
         setPosts(blogPosts);
-        // If we get less than pageSize posts, there are no more
         setHasMore(blogPosts.length === pageSize);
       } catch (error) {
         console.error('Error fetching blog posts:', error);
@@ -135,7 +134,7 @@ export default function BlogPage() {
           {/* Empty State */}
           {posts.length === 0 && !loading && (
             <div className="text-center py-12">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-[rgb(var(--foreground-rgb))] mb-2">
                 No blog posts yet
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
