@@ -62,7 +62,6 @@ jobs:
           host: "46.202.152.223"
           username: ${{ secrets.SERVER_USER || 'root' }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           port: ${{ secrets.SERVER_PORT || '22' }}
           source: "kaira-blog.tar.gz,docker-compose.yml,.env.example,deploy.sh"
           target: "/opt/kaira-blog/"
@@ -73,7 +72,6 @@ jobs:
           host: "46.202.152.223"
           username: ${{ secrets.SERVER_USER || 'root' }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           port: ${{ secrets.SERVER_PORT || '22' }}
           script: |
             cd /opt/kaira-blog
