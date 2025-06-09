@@ -91,10 +91,10 @@ jobs:
             chmod +x deploy.sh
             
             # Stop existing container
-            docker-compose down || true
+            docker compose down || true
             
             # Start new container
-            docker-compose up -d
+            docker compose up -d
             
             # Cleanup old images
             docker image prune -f
