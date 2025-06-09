@@ -27,57 +27,27 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub (Optional)
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-        if: ${{ secrets.DOCKER_USERNAME && secrets.DOCKER_PASSWORD }}
-
       - name: Build Docker Image
         run: |
           docker build \
-            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'https://gw.kaira.me/api' }} \
-            --build-arg NEXT_PUBLIC_USE_MOCK_DATA=${{ secrets.NEXT_PUBLIC_USE_MOCK_DATA || 'false' }} \
-            --build-arg NEXT_PUBLIC_API_TOKEN=${{ secrets.NEXT_PUBLIC_API_TOKEN }} \
+            --build-arg NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://gw.kaira.me/api' }} \
+            --build-arg NEXT_PUBLIC_USE_MOCK_DATA=${{ vars.NEXT_PUBLIC_USE_MOCK_DATA || 'false' }} \
+            --build-arg NEXT_PUBLIC_API_TOKEN=${{ secrets.NEXT_PUBLIC_API_TOKEN || '' }} \
             -t kaira-blog:latest .
 
-      - name: Save Docker Image
+      - name: Test Docker Image
         run: |
-          docker save kaira-blog:latest | gzip > kaira-blog.tar.gz
-
-      - name: Copy Docker Image to Server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
-          source: "kaira-blog.tar.gz"
-          target: "/tmp/"
-
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
-          script: |
-            # Stop existing container
-            docker-compose -f /opt/kaira-blog/docker-compose.yml down || true
-            
-            # Remove old image
-            docker rmi kaira-blog:latest || true
-            
-            # Load new image
-            docker load < /tmp/kaira-blog.tar.gz
-            
-            # Start new container
-            cd /opt/kaira-blog
-            export NEXT_PUBLIC_API_TOKEN=${{ secrets.NEXT_PUBLIC_API_TOKEN }}
-            docker-compose up -d
-            
-            # Clean up
-            rm -f /tmp/kaira-blog.tar.gz
-            docker system prune -f
+          # Run container in background for testing
+          docker run -d --name test-blog -p 3000:3000 kaira-blog:latest
+          
+          # Wait for container to start
+          sleep 10
+          
+          # Test health endpoint
+          curl -f http://localhost:3000/api/health || exit 1
+          
+          # Stop test container
+          docker stop test-blog
+          docker rm test-blog
+          
+          echo "Docker build and test completed successfully!"
