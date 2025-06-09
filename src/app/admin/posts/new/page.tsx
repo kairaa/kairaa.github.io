@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../_contexts/AuthContext';
 import ThemeToggle from '../../../_components/ThemeToggle';
 import Link from 'next/link';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 import { createBlogPost, uploadImageToImgur } from '../../../_lib/blogApi';
@@ -14,11 +15,9 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 interface PostFormData {
   title: string;
-  slug: string;
   summary: string;
   content: string;
   image: string;
-  author: string;
   tags: string;
   isPublished: boolean;
 }
@@ -28,11 +27,9 @@ export default function NewPostPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<PostFormData>({
     title: '',
-    slug: '',
     summary: '',
     content: '',
     image: '',
-    author: 'Kayra Cakiroglu',
     tags: '',
     isPublished: true,
   });
@@ -51,19 +48,6 @@ export default function NewPostPage() {
   useEffect(() => {
     document.title = "Create New Post | Kaira Admin";
   }, []);
-
-  // Auto-generate slug from title
-  useEffect(() => {
-    if (formData.title) {
-      const slug = formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-      setFormData(prev => ({ ...prev, slug }));
-    }
-  }, [formData.title]);
 
   const handleInputChange = (field: keyof PostFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -133,11 +117,16 @@ export default function NewPostPage() {
     try {
       const postData = {
         title: formData.title,
-        slug: formData.slug,
+        slug: formData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim(),
         summary: formData.summary,
         content: formData.content,
         image: formData.image,
-        author: formData.author,
+        authorId: 1, // Default author ID - could be dynamic based on auth
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         isPublished: formData.isPublished,
       };
@@ -233,21 +222,6 @@ export default function NewPostPage() {
                 />
               </div>
 
-              {/* Slug */}
-              <div>
-                <label className="block text-sm font-medium text-[rgb(var(--foreground-rgb))] mb-2">
-                  Slug *
-                </label>
-                <input
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => handleInputChange('slug', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-[rgb(var(--foreground-rgb))]"
-                  placeholder="post-url-slug"
-                  required
-                />
-              </div>
-
               {/* Summary */}
               <div>
                 <label className="block text-sm font-medium text-[rgb(var(--foreground-rgb))] mb-2">
@@ -301,10 +275,11 @@ export default function NewPostPage() {
                     <div className="mt-4">
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Preview:</p>
                       <div className="relative w-full h-48 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <img
+                        <Image
                           src={formData.image}
                           alt="Featured image preview"
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                           onError={() => setError('Invalid image URL')}
                         />
                       </div>
@@ -315,20 +290,6 @@ export default function NewPostPage() {
                     Upload an image file (max 5MB) or enter an image URL manually
                   </p>
                 </div>
-              </div>
-
-              {/* Author */}
-              <div>
-                <label className="block text-sm font-medium text-[rgb(var(--foreground-rgb))] mb-2">
-                  Author
-                </label>
-                <input
-                  type="text"
-                  value={formData.author}
-                  onChange={(e) => handleInputChange('author', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-[rgb(var(--foreground-rgb))]"
-                  placeholder="Author name"
-                />
               </div>
 
               {/* Tags */}

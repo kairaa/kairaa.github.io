@@ -169,7 +169,7 @@ export default function ManagePostsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(post.publishedAt).toLocaleDateString()}
+                          {new Date(post.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
