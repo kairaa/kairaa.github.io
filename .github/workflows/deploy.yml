@@ -101,6 +101,6 @@ jobs:
             
             # Health check
             sleep 15
-            curl -f http://localhost:3000/api/health || exit 1
+            curl -f http://localhost:80/api/health || exit 1
             
             echo "Deployment to server 46.202.152.223 completed successfully!"
