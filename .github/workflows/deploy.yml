@@ -51,3 +51,56 @@ jobs:
           docker rm test-blog
           
           echo "Docker build and test completed successfully!"
+
+      - name: Save Docker Image
+        run: |
+          docker save kaira-blog:latest | gzip > kaira-blog.tar.gz
+
+      - name: Copy files to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: "46.202.152.223"
+          username: ${{ secrets.SERVER_USER || 'root' }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          source: "kaira-blog.tar.gz,docker-compose.yml,.env.example,deploy.sh"
+          target: "/opt/kaira-blog/"
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: "46.202.152.223"
+          username: ${{ secrets.SERVER_USER || 'root' }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          script: |
+            cd /opt/kaira-blog
+            
+            # Load the new Docker image
+            docker load < kaira-blog.tar.gz
+            
+            # Create .env file if it doesn't exist
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              echo "NEXT_PUBLIC_API_TOKEN=${{ secrets.NEXT_PUBLIC_API_TOKEN || '' }}" >> .env
+              echo "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://gw.kaira.me/api' }}" >> .env
+              echo "NEXT_PUBLIC_USE_MOCK_DATA=${{ vars.NEXT_PUBLIC_USE_MOCK_DATA || 'false' }}" >> .env
+            fi
+            
+            # Make deploy script executable
+            chmod +x deploy.sh
+            
+            # Stop existing container
+            docker-compose down || true
+            
+            # Start new container
+            docker-compose up -d
+            
+            # Cleanup old images
+            docker image prune -f
+            
+            # Health check
+            sleep 15
+            curl -f http://localhost:3000/api/health || exit 1
+            
+            echo "Deployment to server 46.202.152.223 completed successfully!"
