@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
+### Development Server
+
 First, run the development server:
 
 ```bash
@@ -14,7 +16,25 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Docker Deployment
+
+For production deployment with Docker:
+
+```bash
+# Quick deployment (recommended)
+./deploy.sh
+
+# Manual deployment
+docker-compose up -d
+
+# Build and run manually
+docker build -t kaira-blog .
+docker run -p 3000:3000 kaira-blog
+```
+
+The application will be available at [http://localhost:3000](http://localhost:3000).
+
+For detailed deployment instructions, see [DOCKER_DEPLOY.md](./DOCKER_DEPLOY.md).
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
