@@ -6,11 +6,15 @@ import Image from 'next/image';
 import { getBlogPosts } from '../_lib/blogApi';
 import type { BlogPost } from '../_types/blog';
 
-export default function BlogPageClient() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+interface BlogPageClientProps {
+  initialPosts: BlogPost[];
+}
+
+export default function BlogPageClient({ initialPosts }: BlogPageClientProps) {
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(initialPosts.length === 10);
   const pageSize = 10;
 
   // Set page title
@@ -18,21 +22,24 @@ export default function BlogPageClient() {
     document.title = "Blog | Kaira";
   }, []);
 
+  // Only fetch more posts if we don't have initial data
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const blogPosts = await getBlogPosts(page, pageSize);
-        setPosts(blogPosts);
-        setHasMore(blogPosts.length === pageSize);
-      } catch (error) {
-        console.error('Error fetching blog posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [page]);
+    if (initialPosts.length === 0) {
+      const fetchPosts = async () => {
+        setLoading(true);
+        try {
+          const blogPosts = await getBlogPosts(1, pageSize);
+          setPosts(blogPosts);
+          setHasMore(blogPosts.length === pageSize);
+        } catch (error) {
+          console.error('Error fetching blog posts:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchPosts();
+    }
+  }, [initialPosts.length, pageSize]);
 
   const loadMore = async () => {
     try {

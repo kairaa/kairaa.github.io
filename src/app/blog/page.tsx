@@ -1,150 +1,32 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import React from 'react';
 import { getBlogPosts } from '../_lib/blogApi';
 import type { BlogPost } from '../_types/blog';
+import BlogPageClient from './BlogPageClient';
 
-export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const pageSize = 10;
-
-  // Set page title
-  useEffect(() => {
-    document.title = "Blog | Kaira";
-  }, []);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const blogPosts = await getBlogPosts(page, pageSize);
-        setPosts(blogPosts);
-        // If we get less than pageSize posts, there are no more
-        setHasMore(blogPosts.length === pageSize);
-      } catch (error) {
-        console.error('Error fetching blog posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [page]);
-
-  const loadMore = async () => {
-    try {
-      const nextPage = page + 1;
-      const morePosts = await getBlogPosts(nextPage, pageSize);
-      setPosts(prev => [...prev, ...morePosts]);
-      setPage(nextPage);
-      setHasMore(morePosts.length === pageSize);
-    } catch (error) {
-      console.error('Error loading more posts:', error);
-    }
+// Generate metadata for SEO
+export async function generateMetadata() {
+  return {
+    title: 'Blog | Kaira',
+    description: 'Thoughts, stories and ideas from Kaira',
+    openGraph: {
+      title: 'Blog | Kaira',
+      description: 'Thoughts, stories and ideas from Kaira',
+    },
   };
+}
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="animate-pulse text-gray-600 dark:text-gray-400">Loading blog posts...</div>
-          </div>
-        </div>
-      </div>
-    );
+export default async function BlogPage() {
+  let initialPosts: BlogPost[] = [];
+  
+  try {
+    // Fetch initial posts on server-side for SSG
+    initialPosts = await getBlogPosts(1, 10);
+  } catch (error) {
+    console.error('Error fetching initial blog posts:', error);
+    // If API fails during build, use empty array - client will fallback to dummy data
+    initialPosts = [];
   }
 
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Blog
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Thoughts, stories and ideas
-            </p>
-          </div>
-
-          {/* Blog Posts Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post) => (
-              <Link 
-                key={post.id} 
-                href={`/blog/${post.slug}`}
-                className="group block"
-              >
-                <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-200 dark:border-gray-700">
-                  {/* Post Image */}
-                  <div className="relative h-48 w-full overflow-hidden">
-                    <Image
-                      src={post.image}
-                      alt={post.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-
-                  {/* Post Content */}
-                  <div className="p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {post.title}
-                    </h2>
-                    
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-                      {post.summary}
-                    </p>
-
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                      <time dateTime={post.createdAt}>
-                        {new Date(post.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </time>
-                      <span className="text-blue-600 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300 transition-colors">
-                        Read more →
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
-
-          {/* Load More Button */}
-          {hasMore && !loading && posts.length > 0 && (
-            <div className="text-center mt-12">
-              <button
-                onClick={loadMore}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-              >
-                Load More Posts
-              </button>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {posts.length === 0 && !loading && (
-            <div className="text-center py-12">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No blog posts yet
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Check back soon for new content!
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  // Pass initial posts to client component for pagination
+  return <BlogPageClient initialPosts={initialPosts} />;
 }

@@ -1,78 +1,64 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getBlogPost } from '../../_lib/blogApi';
+import { getBlogPost, getBlogPosts } from '../../_lib/blogApi';
 import type { BlogPostDetail } from '../../_types/blog';
+import { notFound } from 'next/navigation';
 
-export default function BlogPostPage() {
-  const params = useParams();
-  const slug = params?.slug as string;
-  const [post, setPost] = useState<BlogPostDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Generate static params for all blog posts
+export async function generateStaticParams() {
+  try {
+    const posts = await getBlogPosts();
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    // Return empty array to prevent build failure
+    return [];
+  }
+}
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      if (!slug) return;
+// Generate metadata for SEO
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  try {
+    const post = await getBlogPost(params.slug);
+    
+    if (!post) {
+      return {
+        title: 'Post Not Found | Kaira',
+        description: 'The blog post you are looking for does not exist.',
+      };
+    }
 
-      try {
-        const blogPost = await getBlogPost(slug);
-        if (blogPost) {
-          setPost(blogPost);
-          // Set dynamic page title
-          document.title = `${blogPost.title} | Kaira`;
-        } else {
-          setError('Post not found');
-          document.title = 'Post Not Found | Kaira';
-        }
-      } catch (error) {
-        console.error('Error fetching blog post:', error);
-        setError('Post not found');
-        document.title = 'Post Not Found | Kaira';
-      } finally {
-        setLoading(false);
-      }
+    return {
+      title: `${post.title} | Kaira`,
+      description: post.summary,
+      openGraph: {
+        title: post.title,
+        description: post.summary,
+        images: [post.image],
+      },
     };
+  } catch (error) {
+    return {
+      title: 'Post Not Found | Kaira',
+      description: 'The blog post you are looking for does not exist.',
+    };
+  }
+}
 
-    fetchPost();
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="animate-pulse text-gray-600 dark:text-gray-400">Loading post...</div>
-          </div>
-        </div>
-      </div>
-    );
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  let post: BlogPostDetail | null = null;
+  
+  try {
+    post = await getBlogPost(params.slug);
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
   }
 
-  if (error || !post) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Post Not Found
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-8">
-              The blog post you're looking for doesn't exist or has been removed.
-            </p>
-            <Link 
-              href="/blog"
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              ← Back to Blog
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+  if (!post) {
+    notFound();
   }
 
   return (
