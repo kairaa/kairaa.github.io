@@ -59,7 +59,7 @@ jobs:
       - name: Copy files to Server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: "2a02:4780:41:eed3::1"
+          host: "[2a02:4780:41:eed3::1]"
           username: ${{ secrets.SERVER_USER || 'root' }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || '22' }}
@@ -69,7 +69,7 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: "2a02:4780:41:eed3::1"
+          host: "[2a02:4780:41:eed3::1]"
           username: ${{ secrets.SERVER_USER || 'root' }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || '22' }}
