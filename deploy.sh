@@ -63,7 +63,7 @@ case $ENV in
     
     # Build with production configuration
     docker build -t kaira-blog:latest \
-      --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
+      --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \ 
       --build-arg NEXT_PUBLIC_USE_MOCK_DATA="false" \
       .
     
